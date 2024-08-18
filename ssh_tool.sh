@@ -111,6 +111,9 @@ done
 # 移除文件属性（如果有的话）
 chattr -i /etc/passwd /etc/shadow >/dev/null 2>&1
 chattr -a /etc/passwd /etc/shadow >/dev/null 2>&1
+# 修改配置文件
+sed -i 's/^PasswordAuthentication .*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/^PermitRootLogin .*$/PermitRootLogin yes/' /etc/ssh/sshd_config
 # 检查 SSH 配置文件
 prl=$(grep PermitRootLogin /etc/ssh/sshd_config)
 pa=$(grep PasswordAuthentication /etc/ssh/sshd_config)
