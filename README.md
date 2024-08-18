@@ -1,7 +1,6 @@
-# ssh-key
-## 一键脚本，修改root用户默认登录验证为秘钥验证
-🎉 VPSroot 秘钥登录验证
-
+# ssh_tool
+## 一键脚本，修改root用户默认登录验证为秘钥验证，以及一键修改root用户密码
+🎉 ssh_tool 修改秘钥登录,修改root密码
 ```
 wget -N https://raw.githubusercontents.com/kwxos/ssh-key/main/ssh_key.sh && chmod +x ssh_key.sh && ./ssh_key.sh
 ```
