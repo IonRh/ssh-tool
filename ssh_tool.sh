@@ -205,7 +205,7 @@ rm -f $0
 F2b_install(){
 #Fail2ban安装
 read -p "ssh端口号：" fshp
-read -p "IP封禁时间(单位s，-1为永久封禁)：" 1time
+read -p "IP封禁时间(单位s，-1为永久封禁)：" time1
 $su apt update
 $su apt-get install fail2ban -y
 $su apt-get install rsyslog -y
@@ -227,7 +227,7 @@ filter = sshd
 port = $fshp                          # 端口
 maxretry = 2                         # 最大尝试次数
 findtime = 300                       # 发现周期 单位s
-bantime = $1time                        # 封禁时间，单位s。-1为永久封禁
+bantime = $time1                        # 封禁时间，单位s。-1为永久封禁
 action = %(action_mwl)s
 banaction = iptables-multiport       # 禁用方式
 logpath = /var/log/secure            # SSH 登陆日志位置
