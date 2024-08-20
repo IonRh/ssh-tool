@@ -113,7 +113,7 @@ sudo sed -i "s/^Port .*$/Port $por/" /etc/ssh/sshd_config
 
 # 重启 SSH 服务
 sudo systemctl restart sshd
-echo "SSH 端口已修改为 $por 并重新启动服务。\n请在防火墙开放端口号"
+echo "SSH 端口已修改为 $por 并重新启动服务，请在防火墙开放端口号"
 rm -f $0
 }
 
@@ -121,13 +121,13 @@ fire_install(){
 #防火墙安装
 echo "1.UFW安装"
 echo "2.firewalld安装"
-read -p "RedHat/CentOS 请选择 Firewall 防火墙\n Debian/Ubuntu 请选择 UFW 防火墙：" num1
+read -p "RedHat/CentOS 请选择 Firewall 防火墙， Debian/Ubuntu 请选择 UFW 防火墙：" num1
 read -p "放开ssh端口号：" shp
 read -p "是否需要放开1panel端口号[Y/N]：" YN
 if [ "$YN" = "Y" ];then
     read -p "请输入1panel端口号" shp1
 fi
-if ["$num1" = "1"];then
+if [ "$num1" = "1" ];then
     $su apt update
     $su apt install ufw -y
     $su ufw allow $shp/tcp
@@ -135,8 +135,8 @@ if ["$num1" = "1"];then
         $su ufw allow $shp1/tcp
     fi
     $su ufw enable
-    echo "UFW安装完成\n已开放端口号 $shp;$shp1"
-elif ["$num1" = "2"];then
+    echo "UFW安装完成，已开放端口号 $shp;$shp1"
+elif [ "$num1" = "2" ];then
     $su yum update
     $su yum install firewalld -y
     $su firewall-cmd --zone=public --add-port=$shp/tcp --permanent
@@ -194,9 +194,9 @@ else
     echo "未安装UFW或者firewalld"
 fi
 }
-if ["$port2" = "1"];then
+if [ "$port2" = "1" ];then
     fire_oport1
-elif ["$port2" = "2"];then
+elif [ "$port2" = "2" ];then
     fire_close1
 fi
 rm -f $0
