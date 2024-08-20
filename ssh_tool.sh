@@ -130,18 +130,18 @@ fi
 if [ "$num1" = "1" ];then
     $su apt update
     $su apt install ufw -y
-    $su ufw allow $shp/tcp
+    $su ufw allow $shp/$xy
     if [ "$YN" = "Y" ];then
-        $su ufw allow $shp1/tcp
+        $su ufw allow $shp1/$xy
     fi
     $su ufw enable
     echo "UFW安装完成，已开放端口号 $shp;$shp1"
 elif [ "$num1" = "2" ];then
     $su yum update
     $su yum install firewalld -y
-    $su firewall-cmd --zone=public --add-port=$shp/tcp --permanent
+    $su firewall-cmd --zone=public --add-port=$shp/$xy --permanent
         if [ "$YN" = "Y" ];then
-        $su firewall-cmd --zone=public --add-port=$shp1/tcp --permanent
+        $su firewall-cmd --zone=public --add-port=$shp1/$xy --permanent
     fi
     $su systemctl start firewalld
     $su firewall-cmd --reload
