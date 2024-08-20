@@ -127,7 +127,7 @@ read -p "是否需要放开1panel端口号[Y/N]：" YN
 if [ "$YN" = "Y" ];then
     read -p "请输入1panel端口号" shp1
 fi
-if ["num1" = "1"];then
+if ["$num1" = "1"];then
     $su apt update
     $su apt install ufw -y
     $su ufw allow $shp/tcp
@@ -136,7 +136,7 @@ if ["num1" = "1"];then
     fi
     $su ufw enable
     echo "UFW安装完成\n已开放端口号 $shp;$shp1"
-elif ["num1" = "2"];then
+elif ["$num1" = "2"];then
     $su yum update
     $su yum install firewalld -y
     $su firewall-cmd --zone=public --add-port=$shp/tcp --permanent
@@ -194,9 +194,9 @@ else
     echo "未安装UFW或者firewalld"
 fi
 }
-if ["port2" = "1"];then
+if ["$port2" = "1"];then
     fire_oport1
-elif ["port2" = "2"];then
+elif ["$port2" = "2"];then
     fire_close1
 fi
 rm -f $0
