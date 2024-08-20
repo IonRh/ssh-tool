@@ -206,9 +206,15 @@ F2b_install(){
 #Fail2ban安装
 read -p "ssh端口号：" fshp
 read -p "IP封禁时间(单位s，-1为永久封禁)：" time1
-$su apt update
-$su apt-get install fail2ban -y
-$su apt-get install rsyslog -y
+if command -v apt >/dev/null 2>&1; then
+    $su apt update
+    $su apt-get install fail2ban -y
+    $su apt-get install rsyslog -y
+else
+    $su yum update
+    $su yum install -y epel-release
+    $su yum install -y fail2ban
+fi
 $su rm -rf /etc/fail2ban/jail.local
 cat > /etc/fail2ban/jail.local << EOF
 #DEFAULT-START
