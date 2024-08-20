@@ -121,17 +121,17 @@ fire_install(){
 #防火墙安装
 echo "1.UFW安装"
 echo "2.firewalld安装"
-read -p "RedHat/CentOS 请选择 Firewall 防火墙， Debian/Ubuntu 请选择 UFW 防火墙：" num1
+read -p "Debian/Ubuntu 请选择 UFW 防火墙,RedHat/CentOS 请选择 Firewall 防火墙：" num1
 read -p "放开ssh端口号：" shp
-read -p "是否需要放开1panel端口号[Y/N]：" YN
-if [ "$YN" = "Y" ];then
+read -p "是否需要放开1panel端口号[y/n]：" YN
+if [ "$YN" = "y" ];then
     read -p "请输入1panel端口号" shp1
 fi
 if [ "$num1" = "1" ];then
     $su apt update
     $su apt install ufw -y
     $su ufw allow $shp/$xy
-    if [ "$YN" = "Y" ];then
+    if [ "$YN" = "y" ];then
         $su ufw allow $shp1/$xy
     fi
     $su ufw enable
@@ -140,13 +140,13 @@ elif [ "$num1" = "2" ];then
     $su yum update
     $su yum install firewalld -y
     $su firewall-cmd --zone=public --add-port=$shp/$xy --permanent
-        if [ "$YN" = "Y" ];then
+        if [ "$YN" = "y" ];then
         $su firewall-cmd --zone=public --add-port=$shp1/$xy --permanent
     fi
     $su systemctl start firewalld
     $su firewall-cmd --reload
     $su systemctl enable firewalld
-    echo "firewalld安装完成\n已开放端口号 $shp;$shp1"
+    echo "firewalld安装完成,已开放端口号 $shp;$shp1"
 fi
 rm -f $0
 }
