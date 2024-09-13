@@ -125,7 +125,7 @@ read -p "Debian/Ubuntu 请选择 UFW 防火墙,RedHat/CentOS 请选择 Firewall 
 read -p "放开ssh端口号：" shp8
 read -p "是否需要放开1panel端口号[y/n]：" YN
 if [ "$YN" = "y" ];then
-    read -p "请输入1panel端口号" shp1
+    read -p "请输入1panel端口号：" shp1
 fi
 if [ "$num1" = "1" ];then
     $su apt update
@@ -134,6 +134,7 @@ if [ "$num1" = "1" ];then
     if [ "$YN" = "y" ];then
         $su ufw allow $shp1/tcp
     fi
+    firew=iptables-allports
     $su ufw enable
     echo "UFW安装完成，已开放端口号 $shp8;$shp1"
 elif [ "$num1" = "2" ];then
@@ -146,6 +147,7 @@ elif [ "$num1" = "2" ];then
     $su systemctl start firewalld
     $su firewall-cmd --reload
     $su systemctl enable firewalld
+    firew=firewallcmd-ipset
     echo "firewalld安装完成,已开放端口号 $shp8;$shp1"
 fi
 rm -f $0
@@ -222,21 +224,21 @@ cat > /etc/fail2ban/jail.local << EOF
 bantime = 600
 findtime = 300
 maxretry = 5
-banaction = firewallcmd-ipset
+banaction = $firew
 action = %(action_mwl)s
 #DEFAULT-END
 
 [sshd]
-ignoreip = 127.0.0.1/8               # 白名单
+ignoreip = 127.0.0.1/8
 enabled = true
 filter = sshd
-port = $fshp                          # 端口
-maxretry = 2                         # 最大尝试次数
-findtime = 300                       # 发现周期 单位s
-bantime = $time1                        # 封禁时间，单位s。-1为永久封禁
+port = $fshp 
+maxretry = 5
+findtime = 300
+bantime = $time1
+banaction = $firew
 action = %(action_mwl)s
-banaction = iptables-multiport       # 禁用方式
-logpath = /var/log/secure            # SSH 登陆日志位置
+logpath = /var/log/auth.log
 EOF
 $su systemctl start fail2ban
 $su systemctl enable fail2ban
