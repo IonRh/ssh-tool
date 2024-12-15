@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 #功能提示菜单
 echo "1.修改root用户远程ssh秘钥验证"
 echo "2.修改普通用户远程ssh秘钥验证"
@@ -8,7 +9,8 @@ echo "4.一键修改ssh端口号"
 echo "5.防火墙安装"
 echo "6.防火墙端口设置"
 echo "7.fail2ban，ssh登录防护"
-echo "8.退出"
+echo "8.设置Swap大小"
+echo "9.退出"
 read -p "请选择功能: " mu
 
 
@@ -294,6 +296,119 @@ for file in "${files[@]}"; do
 done
 rm -f $0
 }
+
+set_swap(){
+# 默认SWAP大小，单位为GB
+SWAP_SIZE_GB=2
+SWAP_FILE="/swapfile"
+SWAP_PRIORITY=0
+
+# 检查是否有root权限
+if [ "$EUID" -ne 0 ]; then
+  echo "请以root权限运行此脚本。"
+  exit 1
+fi
+
+# 获取用户输入
+read -p "请输入SWAP大小（单位GB，默认2）：" input_size
+if [[ $input_size =~ ^[0-9]+$ ]]; then
+  SWAP_SIZE_GB=$input_size
+fi
+
+read -p "请输入SWAP文件路径（默认/swapfile）：" input_file
+if [[ -n $input_file ]]; then
+  SWAP_FILE=$input_file
+fi
+
+read -p "请输入SWAP利用优先级（默认0）：" input_priority
+if [[ $input_priority =~ ^[0-9]+$ ]]; then
+  SWAP_PRIORITY=$input_priority
+fi
+
+read -p "是否设置SWAP开机自启动？(y/n，默认y)：" input_autostart
+if [[ "$input_autostart" =~ ^[nN]$ ]]; then
+  ENABLE_AUTOSTART=false
+else
+  ENABLE_AUTOSTART=true
+fi
+
+# 检查是否已有SWAP
+if swapon --show | grep -q "$SWAP_FILE"; then
+  echo "检测到SWAP文件 $SWAP_FILE，调整大小为 ${SWAP_SIZE_GB}GB..."
+  swapoff $SWAP_FILE
+  fallocate -l ${SWAP_SIZE_GB}G $SWAP_FILE || dd if=/dev/zero of=$SWAP_FILE bs=1G count=$SWAP_SIZE_GB
+  chmod 600 $SWAP_FILE
+  mkswap $SWAP_FILE
+  swapon --priority $SWAP_PRIORITY $SWAP_FILE
+  echo "SWAP文件大小已调整完成并重新启用。"
+  if [ "$ENABLE_AUTOSTART" = true ]; then
+    if ! grep -q "$SWAP_FILE" /etc/fstab; then
+      echo "$SWAP_FILE none swap sw,pri=$SWAP_PRIORITY 0 0" >> /etc/fstab
+    fi
+  fi
+  exit 0
+fi
+
+# 创建SWAP文件
+create_swapfile() {
+  echo "创建${SWAP_SIZE_GB}GB的SWAP文件在${SWAP_FILE}..."
+  fallocate -l ${SWAP_SIZE_GB}G $SWAP_FILE || dd if=/dev/zero of=$SWAP_FILE bs=1G count=$SWAP_SIZE_GB
+  chmod 600 $SWAP_FILE
+  mkswap $SWAP_FILE
+  swapon --priority $SWAP_PRIORITY $SWAP_FILE
+  if [ "$ENABLE_AUTOSTART" = true ]; then
+    echo "$SWAP_FILE none swap sw,pri=$SWAP_PRIORITY 0 0" >> /etc/fstab
+  fi
+  echo "SWAP文件创建完成并已启用。"
+}
+
+# 创建SWAP分区（备用功能）
+create_swap_partition() {
+  echo "检测系统是否有未使用的分区..."
+  AVAILABLE_PART=$(lsblk -npo NAME,TYPE,SIZE | grep -w "part" | awk '$3=="0B" {print $1}' | head -n 1)
+  if [ -z "$AVAILABLE_PART" ]; then
+    echo "未找到未使用的分区，改用SWAP文件。"
+    create_swapfile
+    return
+  fi
+
+  echo "找到未使用的分区：$AVAILABLE_PART"
+  mkswap $AVAILABLE_PART
+  swapon --priority $SWAP_PRIORITY $AVAILABLE_PART
+  if [ "$ENABLE_AUTOSTART" = true ]; then
+    echo "$AVAILABLE_PART none swap sw,pri=$SWAP_PRIORITY 0 0" >> /etc/fstab
+  fi
+  echo "SWAP分区设置完成并已启用。"
+}
+
+# 主逻辑
+if free | awk '/^Swap:/ {exit !$2}'; then
+  echo "系统已有SWAP，不需要新增。"
+else
+  if lsblk | grep -q swap; then
+    echo "检测到SWAP分区，启用中..."
+    swapon -a
+  else
+    create_swapfile
+  fi
+fi
+
+# 检查设置是否正确
+if [ "$ENABLE_AUTOSTART" = true ]; then
+  echo "检查开机自启动设置..."
+  if grep -q "$SWAP_FILE" /etc/fstab || grep -q "$AVAILABLE_PART" /etc/fstab; then
+    echo "SWAP开机自启动已正确配置。"
+  else
+    echo "SWAP开机自启动配置失败，请检查/etc/fstab文件。"
+  fi
+fi
+
+# 检查结果
+echo "当前SWAP状态："
+free -h
+swapon --show
+}
+
 if [ "$mu" = "1" ] ; then
     ssh_key
 elif [ "$mu" = "2" ] ; then
@@ -309,6 +424,8 @@ elif [ "$mu" = "6" ] ; then
 elif [ "$mu" = "7" ] ; then
     F2b_install
 elif [ "$mu" = "8" ] ; then
+    set_swap
+elif [ "$mu" = "9" ] ; then
     exit 0
 else
     echo "输入错误，已退出"
