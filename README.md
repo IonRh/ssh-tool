@@ -3,7 +3,7 @@
 ## 包含安装ufw和firewalld防火墙，端口开放或关闭
 🎉 ssh_tool 修改秘钥登录,修改root密码
 ```
-wget -N https://raw.githubusercontent.com/kwxos/ssh-tool/main/ssh_tool.sh && chmod +x ssh_tool.sh && ./ssh_tool.sh
+wget -N https://ghproxy.badking.pp.ua/https://raw.githubusercontent.com/IonRh/ssh-tool/main/ssh_tool.sh && chmod +x ssh_tool.sh && ./ssh_tool.sh
 ```
 
 ![image](https://github.com/user-attachments/assets/657257c9-4cde-4e69-9200-47263e6552e5)
