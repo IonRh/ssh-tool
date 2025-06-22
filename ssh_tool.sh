@@ -210,6 +210,29 @@ F2b_install(){
 #Fail2ban安装
 read -p "ssh端口号：" fshp
 read -p "IP封禁时间(单位s，-1为永久封禁)：" time1
+echo "请选择封禁方式："
+echo "1. iptables-allports"
+echo "2. iptables-multiport"
+echo "3. firewallcmd-ipset"
+echo "4. ufw"
+
+read -p "输入选择（1-4）：" manner1
+# 设置默认封禁方式
+manner=""
+if [ "$manner1" = "1" ]; then
+    manner="iptables-allports"
+elif [ "$manner1" = "2" ]; then
+    manner="iptables-multiport"
+elif [ "$manner1" = "3" ]; then
+    manner="firewallcmd-ipset"
+elif [ "$manner1" = "4" ]; then
+    manner="ufw"
+else
+    echo "无效输入，请选择 1、2、3 或 4。"
+    exit 1
+fi
+echo "您选择的封禁方式是：$manner"
+
 if command -v apt >/dev/null 2>&1; then
     $su apt update
     $su apt-get install fail2ban -y
@@ -226,7 +249,7 @@ cat > /etc/fail2ban/jail.local << EOF
 bantime = 600
 findtime = 300
 maxretry = 5
-banaction = $firew
+banaction = $manner
 action = %(action_mwl)s
 #DEFAULT-END
 
@@ -238,7 +261,7 @@ port = $fshp
 maxretry = 5
 findtime = 300
 bantime = $time1
-banaction = $firew
+banaction = $manner
 action = %(action_mwl)s
 logpath = /var/log/auth.log
 EOF
